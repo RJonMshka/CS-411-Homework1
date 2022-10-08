@@ -13,35 +13,6 @@ import java.util.regex.Pattern
 object MRFirstTask:
   val configObject = ConfigFactory.load().getConfig("mapReduceTasksConfig")
 
-//  class Map extends Mapper[Object, Text, Text, IntWritable]:
-//    //    val logger = CreateLogger(classOf[Map])
-//    val logPattern = Pattern.compile(configObject.getString("mapReduceTasksConfig.LogPattern"))
-//    val stringMessagePattern = Pattern.compile(configObject.getString("mapReduceTasksConfig.StringMessagePattern"))
-//    val startTime = configObject.getString("mapReduceTasksConfig.MRFirstTaskStartInterval")
-//    val endTime = configObject.getString("mapReduceTasksConfig.MRFirstTaskEndInterval")
-//    val timeDifference = TimeUtil.getInterval(startTime, endTime)
-//
-//    override def map(key: Object, value: Text, context: Mapper[Object, Text, Text, IntWritable]#Context): Unit =
-//      val matcher = logPattern.matcher(value.toString)
-//      if(matcher.matches()) {
-//        val currentTimeDifference = TimeUtil.getInterval(startTime, matcher.group(1))
-//        val logMessageMatcher = stringMessagePattern.matcher(matcher.group(5))
-//
-//        if(logMessageMatcher.matches()) {
-//          if(currentTimeDifference < 0L || currentTimeDifference > timeDifference) {
-//            context.write(new Text(matcher.group(3)), new IntWritable(1))
-//          } else {
-//            context.write(new Text(matcher.group(3)), new IntWritable(0))
-//          }
-//        }
-//      }
-//
-//  class Reduce extends Reducer[Text, IntWritable, Text, IntWritable]:
-//    ////    val logger = CreateLogger(classOf[Reduce])
-//    override def reduce(key: Text, values: lang.Iterable[IntWritable], context: Reducer[Text, IntWritable, Text, IntWritable]#Context): Unit =
-//        val sum = values.asScala.reduce((valueOne, valueTwo) => new IntWritable(valueOne.get() + valueTwo.get()))
-//        context.write(key, new IntWritable(sum.get()))
-
   class Map extends MapReduceBase with Mapper[LongWritable, Text, Text, IntWritable]:
     val logger = CreateLogger(classOf[Map])
     val logPattern = Pattern.compile(configObject.getString("LogPattern"))
