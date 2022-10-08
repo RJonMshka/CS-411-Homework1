@@ -12,6 +12,10 @@ import java.io.IOException
 import java.util
 import java.util.regex.Pattern
 
+
+/**
+ * This object is a wrapper for Mapper and Reducer of third task
+ */
 object MRThirdTask {
   val configObject: Config = ConfigFactory.load().getConfig("mapReduceTasksConfig")
 
@@ -26,7 +30,8 @@ object MRThirdTask {
 
       if matcher.matches() then output.collect(new Text(matcher.group(3)), new IntWritable(1))
 
-
+  @throws[IOException]
+  @throws[InterruptedException]
   class Reduce extends MapReduceBase with Reducer[Text, IntWritable, Text, IntWritable]:
     val logger: Logger = CreateLogger(classOf[Reduce])
 

@@ -2,7 +2,7 @@ ThisBuild / version := "1.0.0"
 
 ThisBuild / scalaVersion := "3.1.3"
 
-val logbackVersion = "1.4.1"
+val logbackVersion = "1.3.0"
 val sfl4sVersion = "2.0.3"
 val typesafeConfigVersion = "1.4.2"
 val scalacticVersion = "3.2.9"
