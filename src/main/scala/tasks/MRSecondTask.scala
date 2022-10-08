@@ -1,9 +1,10 @@
 package tasks
 
 import scala.jdk.CollectionConverters.*
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.hadoop.io.{IntWritable, LongWritable, NullWritable, Text, WritableComparable, WritableComparator}
 import org.apache.hadoop.mapred.{MapReduceBase, Mapper, OutputCollector, Reducer, Reporter}
+import org.slf4j.Logger
 import tasks.HelperUtils.{CreateLogger, TimeUtil}
 
 import java.io.IOException
@@ -11,32 +12,32 @@ import java.util
 import java.util.regex.Pattern
 
 object MRSecondTask {
-  val configObject = ConfigFactory.load().getConfig("mapReduceTasksConfig")
+  val configObject: Config = ConfigFactory.load().getConfig("mapReduceTasksConfig")
 
   class IntermediateMap extends MapReduceBase with Mapper[LongWritable, Text, Text, IntWritable]:
-    val logger = CreateLogger(classOf[IntermediateMap])
+    val logger: Logger = CreateLogger(classOf[IntermediateMap])
 
-    val logPattern = Pattern.compile(configObject.getString("LogPattern"))
-    val stringMessagePattern = Pattern.compile(configObject.getString("StringMessagePattern"))
+    val logPattern: Pattern = Pattern.compile(configObject.getString("LogPattern"))
+    val stringMessagePattern: Pattern = Pattern.compile(configObject.getString("StringMessagePattern"))
 
     @throws[IOException]
     @throws[InterruptedException]
     override def map(key: LongWritable, value: Text, output: OutputCollector[Text, IntWritable], reporter: Reporter): Unit =
-      val intervalInSeconds = configObject.getInt("MRSecondTaskIntervalInSeconds")
+      val intervalInSeconds: Int = configObject.getInt("MRSecondTaskIntervalInSeconds")
 
       val matcher = logPattern.matcher(value.toString)
       if(matcher.matches()) {
         val stringInstanceMatcher = stringMessagePattern.matcher(matcher.group(5))
 
-        if(matcher.group(3) == configObject.getString("MessageTypeError") && stringInstanceMatcher.matches()) then
-          val (timeStartString, timeEndString) = TimeUtil.convertToHourMinuteInterval(matcher.group(1).toString, intervalInSeconds)
+        if matcher.group(3) == configObject.getString("MessageTypeError") && stringInstanceMatcher.matches() then
+          val (timeStartString, timeEndString) = TimeUtil.convertToHourMinuteInterval(matcher.group(1), intervalInSeconds)
           output.collect(new Text(timeStartString.concat("-").concat(timeEndString)), new IntWritable(1))
 
       }
 
 
   class IntermediateReduce extends MapReduceBase with Reducer[Text, IntWritable, Text, IntWritable]:
-    val logger = CreateLogger(classOf[IntermediateReduce])
+    val logger: Logger = CreateLogger(classOf[IntermediateReduce])
 
     override def reduce(key: Text, values: util.Iterator[IntWritable], output: OutputCollector[Text, IntWritable], reporter: Reporter): Unit =
       val sum = values.asScala.reduce((valueOne, valueTwo) => IntWritable(valueOne.get() + valueTwo.get()))
@@ -53,21 +54,21 @@ object MRSecondTask {
         -1 * comparison
 
   class Map extends MapReduceBase with Mapper[LongWritable, Text, Text, NullWritable]:
-    val inputDataPattern = Pattern.compile(configObject.getString("IntermediateTaskOutputPattern"))
-    val nullVal = NullWritable.get()
+    val inputDataPattern: Pattern = Pattern.compile(configObject.getString("IntermediateTaskOutputPattern"))
+    val nullVal: NullWritable = NullWritable.get()
 
     override def map(key: LongWritable, value: Text, output: OutputCollector[Text, NullWritable], reporter: Reporter): Unit =
       val matcher = inputDataPattern.matcher(value.toString)
 
-      if(matcher.matches()) then
+      if matcher.matches() then
         output.collect(value, nullVal)
 
   class Reduce extends MapReduceBase with Reducer[Text, NullWritable, Text, IntWritable]:
-    val inputDataPattern = Pattern.compile(configObject.getString("IntermediateTaskOutputPattern"))
+    val inputDataPattern: Pattern = Pattern.compile(configObject.getString("IntermediateTaskOutputPattern"))
 
     override def reduce(key: Text, values: util.Iterator[NullWritable], output: OutputCollector[Text, IntWritable], reporter: Reporter): Unit =
       val matcher = inputDataPattern.matcher(key.toString)
-      if(matcher.matches()) then
+      if matcher.matches() then
         output.collect(new Text(matcher.group(1)), new IntWritable(matcher.group(2).toInt))
 
 

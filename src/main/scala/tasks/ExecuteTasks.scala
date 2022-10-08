@@ -1,17 +1,26 @@
 package tasks
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.hadoop.fs.{LocalFileSystem, Path}
 import org.apache.hadoop.hdfs.DistributedFileSystem
 import org.apache.hadoop.io.{IntWritable, LongWritable, NullWritable, Text}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapred.{FileInputFormat, FileOutputFormat, JobClient, JobConf, TextInputFormat, TextOutputFormat}
+import org.slf4j.Logger
 import tasks.HelperUtils.CreateLogger
 
+/**
+ * Object responsible for execution of the application
+ * This object's main method will be the entry point of the application
+ */
 object ExecuteTasks {
-  val configReference = ConfigFactory.load().getConfig("mapReduceTasksConfig")
-  val logger = CreateLogger(classOf[ExecuteTasks.type])
+  val configReference: Config = ConfigFactory.load().getConfig("mapReduceTasksConfig")
+  val logger: Logger = CreateLogger(classOf[ExecuteTasks.type])
 
+  /**
+   * This method is used to set the common configurations MapReduce jobs
+   * @param config - configuration object which need to be configured
+   */
   private def setCommonConfigSettings(config: JobConf): Unit =
     config.set("mapreduce.output.textoutputformat.separator", configReference.getString("OutputFormatSeparator"))
     config.set("fs.hdfs.impl", classOf[DistributedFileSystem].getName)
@@ -84,8 +93,13 @@ object ExecuteTasks {
     FileInputFormat.setInputPaths(conf, new Path(inputPath))
     FileOutputFormat.setOutputPath(conf, new Path(intermediateOutputPath))
     val runningJob = JobClient.runJob(conf)
-    runningJob.waitForCompletion
-    if(runningJob.isSuccessful) then this.executeSecondFinalTask(intermediateOutputPath, outputPath)
+    // Waiting for intermediate job to complete
+    runningJob.waitForCompletion()
+    if runningJob.isSuccessful then
+      logger.info("the intermediate job finished successfully, starting the final job")
+      this.executeSecondFinalTask(intermediateOutputPath, outputPath)
+    else
+      logger.error("The intermediate job failed, unable to start the final job")
 
   private def executeSecondFinalTask(inputPath: String, outputPath: String): Unit =
     val conf = new JobConf(classOf[MRFirstTask.type])
@@ -108,13 +122,17 @@ object ExecuteTasks {
 
 
   @main def runTasks(taskType: String, inputPath: String, outputPath: String, nextOutputPath: String): Unit =
-    if(taskType == this.configReference.getString("ExecuteFirstTask")) then
+    if taskType == this.configReference.getString("ExecuteFirstTask") then
+      logger.info("Starting First Task")
       this.executeFirstTask(inputPath, outputPath)
-    else if(taskType == this.configReference.getString("ExecuteSecondTask")) then
+    else if taskType == this.configReference.getString("ExecuteSecondTask") then
+      logger.info("Starting Second Task")
       this.executeIntermediateSecondTask(inputPath, outputPath, nextOutputPath)
-    else if(taskType == this.configReference.getString("ExecuteThirdTask")) then
+    else if taskType == this.configReference.getString("ExecuteThirdTask") then
+      logger.info("Starting Third Task")
       this.executeThirdTask(inputPath, outputPath)
-    else if(taskType == this.configReference.getString("ExecuteFourthTask")) then
+    else if taskType == this.configReference.getString("ExecuteFourthTask") then
+      logger.info("Starting Fourth Task")
       this.executeFourthTask(inputPath, outputPath)
     else
       logger.error("Unable to find appropriate job given the arguments")
