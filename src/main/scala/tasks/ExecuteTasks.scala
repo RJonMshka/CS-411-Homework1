@@ -26,6 +26,11 @@ object ExecuteTasks {
     config.set("fs.hdfs.impl", classOf[DistributedFileSystem].getName)
     config.set("fs.file.impl", classOf[LocalFileSystem].getName)
 
+  /**
+   * Executes first task
+   * @param inputPath - path to input files
+   * @param outputPath - path to output
+   */
   private def executeFirstTask(inputPath: String, outputPath: String): Unit =
     val conf = new JobConf(classOf[MRFirstTask.type])
     conf.setJobName(configReference.getString("FirstTaskJobName"))
@@ -43,6 +48,11 @@ object ExecuteTasks {
     FileOutputFormat.setOutputPath(conf, new Path(outputPath))
     JobClient.runJob(conf)
 
+  /**
+   * Executes third task
+   * @param inputPath - path to input files
+   * @param outputPath - path to output
+   */
   private def executeThirdTask(inputPath: String, outputPath: String): Unit =
     val conf = new JobConf(classOf[MRThirdTask.type])
     conf.setJobName(configReference.getString("ThirdTaskJobName"))
@@ -60,6 +70,11 @@ object ExecuteTasks {
     FileOutputFormat.setOutputPath(conf, new Path(outputPath))
     JobClient.runJob(conf)
 
+  /**
+   * Executes fourth task
+   * @param inputPath - path to input files
+   * @param outputPath - path to output
+   */
   private def executeFourthTask(inputPath: String, outputPath: String): Unit =
     val conf = new JobConf(classOf[MRFourthTask.type])
     conf.setJobName(configReference.getString("FourthTaskJobName"))
@@ -78,6 +93,12 @@ object ExecuteTasks {
     FileOutputFormat.setOutputPath(conf, new Path(outputPath))
     JobClient.runJob(conf)
 
+  /**
+   * Executes intermediate second task
+   * @param inputPath - path to input files
+   * @param intermediateOutputPath - path to intermediate output
+   * @param outputPath - path to output
+   */
   private def executeIntermediateSecondTask(inputPath: String, intermediateOutputPath: String, outputPath: String): Unit =
     val conf = new JobConf(classOf[MRFirstTask.type])
     conf.setJobName(configReference.getString("SecondIntermediateTaskJobName"))
@@ -101,6 +122,11 @@ object ExecuteTasks {
     else
       logger.error("The intermediate job failed, unable to start the final job")
 
+  /**
+   * Executes final second task
+   * @param inputPath - path to input files (intermediate output)
+   * @param outputPath - path to output
+   */
   private def executeSecondFinalTask(inputPath: String, outputPath: String): Unit =
     val conf = new JobConf(classOf[MRFirstTask.type])
     conf.setJobName(configReference.getString("SecondFinalTaskJobName"))
@@ -120,7 +146,14 @@ object ExecuteTasks {
     FileOutputFormat.setOutputPath(conf, new Path(outputPath))
     JobClient.runJob(conf)
 
-
+  /**
+   * Main method - entry point of application
+   * This method decides which task to execute based on parameters passed
+   * @param taskType - which task that needs to be executed
+   * @param inputPath - path to input shards
+   * @param outputPath - output path to all tasks except 2nd one, for 2nd task, this will be an intermediate output path
+   * @param nextOutputPath - final output path for 2nd task, and should be passed anything else for other tasks
+   */
   @main def runTasks(taskType: String, inputPath: String, outputPath: String, nextOutputPath: String): Unit =
     if taskType == this.configReference.getString("ExecuteFirstTask") then
       logger.info("Starting First Task")

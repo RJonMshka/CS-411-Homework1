@@ -3,6 +3,9 @@ package tasks.HelperUtils
 import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Success, Try}
 
+/**
+ * Object to create logger objects by passing the class reference
+ */
 object CreateLogger {
   def apply[T](class4logger: Class[T]): Logger =
     val logBackXml = "logback.xml"

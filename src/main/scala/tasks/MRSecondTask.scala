@@ -18,12 +18,24 @@ import java.util.regex.Pattern
 object MRSecondTask {
   val configObject: Config = ConfigFactory.load().getConfig("mapReduceTasksConfig")
 
+  /**
+   *  Intermediate Mapper class for second task
+   */
   class IntermediateMap extends MapReduceBase with Mapper[LongWritable, Text, Text, IntWritable]:
     val logger: Logger = CreateLogger(classOf[IntermediateMap])
 
     val logPattern: Pattern = Pattern.compile(configObject.getString("LogPattern"))
     val stringMessagePattern: Pattern = Pattern.compile(configObject.getString("StringMessagePattern"))
 
+    /**
+     * This method matches the log message to the log pattern, if matches, writes to output with time interval as key and a single integer 1 as value
+     * @param key - LongWritable object - we do not use this key anywhere, however this is the key for a single entry to map method
+     * @param value - a single log text
+     * @param output - output object which needs to written to
+     * @param reporter - monitoring object
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @throws[IOException]
     @throws[InterruptedException]
     override def map(key: LongWritable, value: Text, output: OutputCollector[Text, IntWritable], reporter: Reporter): Unit =
@@ -42,17 +54,41 @@ object MRSecondTask {
 
       }
 
-  @throws[IOException]
-  @throws[InterruptedException]
+  /**
+   *  Intermediate reducer class for second task
+   */
   class IntermediateReduce extends MapReduceBase with Reducer[Text, IntWritable, Text, IntWritable]:
     val logger: Logger = CreateLogger(classOf[IntermediateReduce])
 
+    /**
+     * This method get the input as key value pair, which are the outputs of mapper group together
+     * Sums all values of "values" together and outputs the key, sum as pair
+     * @param key - Text key which will be the same one that is passed in mapper's output
+     * @param values - all the aggregated values that belong to a single key
+     * @param output - output object which needs to written to
+     * @param reporter - monitoring object
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @throws[IOException]
+    @throws[InterruptedException]
     override def reduce(key: Text, values: util.Iterator[IntWritable], output: OutputCollector[Text, IntWritable], reporter: Reporter): Unit =
       logger.info("reducer function called")
       val sum = values.asScala.reduce((valueOne, valueTwo) => IntWritable(valueOne.get() + valueTwo.get()))
       output.collect(key, new IntWritable(sum.get()))
 
+  /**
+   * Secondary sort key comparator class, used to sort the grouped outputs of map which needs to be passed to Reducer
+   */
   class SortComparator() extends WritableComparator(classOf[Text], true):
+    /**
+     * This method is used to decide sort criteria for keys that needs to be fed to the reducer
+     * First the count is compared and if count is same, then time interval is compared
+     * Used to sort keys in descending order of count and then descending order of time interval
+     * @param a - WritableComparable key
+     * @param b - WritableComparable another key for comparison
+     * @return - Int - -1 for if a > b, 1 if a < b and 0 if both are exactly same
+     */
     override def compare(a: WritableComparable[_], b: WritableComparable[_]): Int =
       val textAArray = a.asInstanceOf[Text].toString.split(configObject.getString("OutputFormatSeparator"))
       val textBArray = b.asInstanceOf[Text].toString.split(configObject.getString("OutputFormatSeparator"))
@@ -64,13 +100,26 @@ object MRSecondTask {
       else
         -1 * comparison
 
-  @throws[IOException]
-  @throws[InterruptedException]
+  /**
+   *  Mapper class for second task
+   */
   class Map extends MapReduceBase with Mapper[LongWritable, Text, Text, NullWritable]:
     val logger = CreateLogger(classOf[Map])
     val inputDataPattern: Pattern = Pattern.compile(configObject.getString("IntermediateTaskOutputPattern"))
     val nullVal: NullWritable = NullWritable.get()
 
+
+    /**
+     * This method matches the intermediate output text "(time interval, count) format" to the a reducer input data pattern, if matches, writes to output with whole text as key and NullWritable object as value
+     * @param key - LongWritable object - we do not use this key anywhere, however this is the key for a single entry to map method
+     * @param value - a single log text
+     * @param output - output object which needs to written to
+     * @param reporter - monitoring object
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @throws[IOException]
+    @throws[InterruptedException]
     override def map(key: LongWritable, value: Text, output: OutputCollector[Text, NullWritable], reporter: Reporter): Unit =
       logger.info("map function called")
       val matcher = inputDataPattern.matcher(value.toString)
@@ -78,12 +127,26 @@ object MRSecondTask {
       if matcher.matches() then
         output.collect(value, nullVal)
 
-  @throws[IOException]
-  @throws[InterruptedException]
+  /**
+   *  Reducer class for second task
+   */
   class Reduce extends MapReduceBase with Reducer[Text, NullWritable, Text, IntWritable]:
     val logger = CreateLogger(classOf[Reduce])
     val inputDataPattern: Pattern = Pattern.compile(configObject.getString("IntermediateTaskOutputPattern"))
 
+    /**
+     * This method get the input as key value pair, which are the outputs of mapper group together
+     * Again matches the key to reducer input data pattern and extract time interval and error count
+     * Then outputs interval as key and error count as value in key-value pair
+     * @param key - Text key which will be the same one that is passed in mapper's output
+     * @param values - all the aggregated values that belong to a single key
+     * @param output - output object which needs to written to
+     * @param reporter - monitoring object
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @throws[IOException]
+    @throws[InterruptedException]
     override def reduce(key: Text, values: util.Iterator[NullWritable], output: OutputCollector[Text, IntWritable], reporter: Reporter): Unit =
       logger.info("reducer function called")
       val matcher = inputDataPattern.matcher(key.toString)
