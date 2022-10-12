@@ -69,8 +69,8 @@ object MRFirstTask:
      * @param values - all the aggregated values that belong to a single key
      * @param output - output object which needs to written to
      * @param reporter - monitoring object
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException - IOException
+     * @throws InterruptedException - InterruptedException
      */
     @throws[IOException]
     @throws[InterruptedException]

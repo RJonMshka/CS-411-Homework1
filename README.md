@@ -12,11 +12,11 @@ filter the log messages that match a particular pattern and then give various in
 More details about implementation, data semantics and deployment are given in later sections of this documentation.
 
 ## How to run the application
-1. Download IntelliJ or your favourite IDE. The application is developed using IntelliJ IDE and it is highly recommended to use it for various reasons.
+1. Download IntelliJ or your favourite IDE. The application is developed using IntelliJ IDE, and it is highly recommended to use it for various reasons.
 2. Make sure you have Java SDK version 18 installed on your machine. 
 3. Also, it is assumed that your machine have git (version control) installed on your machine. If not, please do.
-4. Clone this repository from github and switch to `main` branch. This is where the latest code is located.
-5. Open IntelliJ, and open up this project in the IDE environment. Or you can do `New - Project from Version Control` and then enter the github URL of this repository to load in directly into your system if not cloned already.
+4. Clone this repository from GitHub and switch to `main` branch. This is where the latest code is located.
+5. Open IntelliJ, and open up this project in the IDE environment. Or you can do `New - Project from Version Control` and then enter the GitHub URL of this repository to load in directly into your system if not cloned already.
 6. The application's code is written using Scala programming language. The version used for Scala is `3.1.3`.
 7. For building the project, `sbt` (Scala's Simple Build Tool) is used. Version `1.7.2` is used for sbt.
 8. All the dependencies and build setting can be found in `build.sbt` file.
@@ -39,12 +39,24 @@ More details about implementation, data semantics and deployment are given in la
 ---
 
 ## How to Deploy to AWS EMR
-The deployment of this application to AWS EMR is done and the steps can be viewed in this (video link) youtube video.
+The deployment of this application to AWS EMR is done and the steps can be viewed in this (video link) YouTube video.
 The documentation for AWS EMR can be found (here).
 
 ---
 ## Implementation Details
+All the 4 tasks are implemented with one single entry point, the main method `tasks.ExecuteTasks.runTasks`.
+This method takes 4 string parameters. The first is used to define the task. For example, 1 means first task, 2 means second, 3 means third and 4 means 4th task.
+The next two parameters will be used as input and output respectively for all tasks except second task.
+For second task, second parameter is input path, 3rd parameter is the intermediate output path and the fourth parameter is the final output path.
+For tasks other than second, the fourth parameter can be anything, but it needs to be passed. 
+Mappers and Reducers for each task are separated in their respective object files.
+There us a `HelperUtils` package which contain common utilities like logger, config reference object, time utils and other common utils.
+All the configurations for application can be found at `src/main/resources/application.conf` file.
+The configuration for logback logging framework used can be found at `src/main/resources/logback.xml` file.
 
+There are some sample outputs of the task in `src/main/resources/sampleOutputs` directory.
+
+Also, to test the application with real input data, the data is present at `src/main/resources/input` directory. This data can be copied to HDFS or S3 bucket (in case of deploying on AWS EMR) and can be analyzed using hadoop's mapreduce framework.
 
 ---
 ## Various Map-Reduce Tasks and how to run them
@@ -60,7 +72,7 @@ Run command: `hadoop jar "Path-to-jar-file" 1 "Path-to-input-folder-that-contain
 
 Example: `hadoop jar C:/Homework1-assembly-1.0.0.jar 1 /user/input/ /user/output/ 0`
 
-**Note: There is a "0" last argument to the above command. This argument can be anything but it need to there as the main function expects it.
+**Note: There is a "0" last argument to the above command. This argument can be anything, but it needs to there as the main function expects it.
 This argument is only meant to be used for task 2. 
 Also, the argument after the path of jar file is "1" which specifies the task number.**
 
@@ -114,7 +126,7 @@ Run command: `hadoop jar "Path-to-jar-file" 3 "Path-to-input-folder-that-contain
 
 Example: `hadoop jar C:/Homework1-assembly-1.0.0.jar 3 /user/input/ /user/output/ 0`
 
-**Note: There is a "0" last argument to the above command. This argument can be anything but it need to there as the main function expects it.
+**Note: There is a "0" last argument to the above command. This argument can be anything, but it needs to there as the main function expects it.
 This argument is only meant to be used for task 2.
 Also, the argument after the path of jar file is "3" which specifies the task number.**
 
@@ -135,7 +147,7 @@ Run command: `hadoop jar "Path-to-jar-file" 4 "Path-to-input-folder-that-contain
 
 Example: `hadoop jar C:/Homework1-assembly-1.0.0.jar 4 /user/input/ /user/output/ 0`
 
-**Note: There is a "0" last argument to the above command. This argument can be anything but it need to there as the main function expects it.
+**Note: There is a "0" last argument to the above command. This argument can be anything, but it needs to there as the main function expects it.
 This argument is only meant to be used for task 2.
 Also, the argument after the path of jar file is "4" which specifies the task number.**
 
@@ -150,3 +162,16 @@ WARN,125
 
 This means that for DEBUG level, the log message with the largest character length of the string instance has a length og 166 characters.
 The same is true for other debug levels.
+
+For example, the below is a log message of type INFO.
+```
+23:20:40.781 [scala-execution-context-global-17] INFO  HelperUtils.Parameters$ - T)agkrWh6>&m)pEp7NR
+```
+
+Let us assume that the string message `T)agkrWh6>&m)pEp7NR` has the biggest character length among all other INFO level logs and `23:20:40.781 [scala-execution-context-global-17] INFO  HelperUtils.Parameters$ - T)agkrWh6>&m)pEp7NR` has length 100.
+So, the program will return `INFO, 100` as its output. That's how the 4th task is implemented.
+
+It could have been implemented the easier way by just returning the max string pattern instance length (string message length). But I chose otherwise.
+
+---
+### That's all. Thank you so much.

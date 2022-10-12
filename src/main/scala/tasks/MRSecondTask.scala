@@ -33,8 +33,8 @@ object MRSecondTask {
      * @param value - a single log text
      * @param output - output object which needs to written to
      * @param reporter - monitoring object
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException - IOException
+     * @throws InterruptedException - InterruptedException
      */
     @throws[IOException]
     @throws[InterruptedException]
@@ -67,8 +67,8 @@ object MRSecondTask {
      * @param values - all the aggregated values that belong to a single key
      * @param output - output object which needs to written to
      * @param reporter - monitoring object
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException - IOException
+     * @throws InterruptedException - InterruptedException
      */
     @throws[IOException]
     @throws[InterruptedException]
@@ -104,7 +104,7 @@ object MRSecondTask {
    *  Mapper class for second task
    */
   class Map extends MapReduceBase with Mapper[LongWritable, Text, Text, NullWritable]:
-    val logger = CreateLogger(classOf[Map])
+    val logger: Logger = CreateLogger(classOf[Map])
     val inputDataPattern: Pattern = Pattern.compile(configObject.getString("IntermediateTaskOutputPattern"))
     val nullVal: NullWritable = NullWritable.get()
 
@@ -115,8 +115,8 @@ object MRSecondTask {
      * @param value - a single log text
      * @param output - output object which needs to written to
      * @param reporter - monitoring object
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException - IOException
+     * @throws InterruptedException - InterruptedException
      */
     @throws[IOException]
     @throws[InterruptedException]
@@ -131,7 +131,7 @@ object MRSecondTask {
    *  Reducer class for second task
    */
   class Reduce extends MapReduceBase with Reducer[Text, NullWritable, Text, IntWritable]:
-    val logger = CreateLogger(classOf[Reduce])
+    val logger: Logger = CreateLogger(classOf[Reduce])
     val inputDataPattern: Pattern = Pattern.compile(configObject.getString("IntermediateTaskOutputPattern"))
 
     /**
@@ -142,8 +142,8 @@ object MRSecondTask {
      * @param values - all the aggregated values that belong to a single key
      * @param output - output object which needs to written to
      * @param reporter - monitoring object
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException - IOException
+     * @throws InterruptedException - InterruptedException
      */
     @throws[IOException]
     @throws[InterruptedException]
