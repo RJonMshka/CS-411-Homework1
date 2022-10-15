@@ -31,10 +31,12 @@ More details about implementation, data semantics and deployment are given in la
 17. The jar file will be generating in `target/scala-3.1.3/` directory with name `Homework1-assembly-1.0.0.jar`.
 18. This jar file can be run on local machine if your machine has hadoop installed on it. 
 19. To do that, first copy the input log files from `src/main/resources/input/` into a directory on hdfs.
-20. Then perform `hadoop jar` command to run the various tasks for this application. Make sure you have hadoop installed and running in your system.
-21. The correct syntax or format of running every task is provided in further sections.
-22. This jar file can also be deployed to AWS EMR (Elastic MapReduce) cluster. The steps for that will be cover in a later section.
-23. That's pretty much it for running the application, please experiment around with the application.
+20. For example, you can make a directory in HDFS by running command `hdfs dfs -mkdir /user` and `hdfs dfs -mkdir /user/input`.
+21. Then you can copy local input files into HDFS by command like `hdfs dfs -copyFromLocal C:/path-to-local-input-files/ /user/input`.
+22. Then perform `hadoop jar` command to run the various tasks for this application. Make sure you have hadoop installed and running in your system.
+23. The correct syntax or format of running every task is provided in further sections.
+24. This jar file can also be deployed to AWS EMR (Elastic MapReduce) cluster. The steps for that will be cover in a later section.
+25. That's pretty much it for running the application, please experiment around with the application.
 
 ---
 
@@ -57,6 +59,9 @@ The configuration for logback logging framework used can be found at `src/main/r
 There are some sample outputs of the task in `src/main/resources/sampleOutputs` directory.
 
 Also, to test the application with real input data, the data is present at `src/main/resources/input` directory. This data can be copied to HDFS or S3 bucket (in case of deploying on AWS EMR) and can be analyzed using hadoop's mapreduce framework.
+
+The output files are of CSV format but do not have a .csv extension. To open the file in a spreadsheet software, 
+rename the output file with .csv extension and then it can be opened up in an any spreadsheet software like MS Excel or Google Spreadsheets.
 
 ---
 ## Various Map-Reduce Tasks and how to run them
