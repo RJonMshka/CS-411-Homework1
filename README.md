@@ -39,8 +39,8 @@ More details about implementation, data semantics and deployment are given in la
 ---
 
 ## How to Deploy to AWS EMR
-The deployment of this application to AWS EMR is done and the steps can be viewed in this (video link) YouTube video.
-The documentation for AWS EMR can be found (here).
+The deployment of this application to AWS EMR is done and the steps can be viewed in this ([video link](https://www.youtube.com/watch?v=sc2vCEfdQpU)) YouTube video.
+The documentation for AWS EMR can be found [here](https://docs.aws.amazon.com/emr/index.html).
 
 ---
 ## Implementation Details
